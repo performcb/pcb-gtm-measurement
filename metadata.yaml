@@ -1,0 +1,7 @@
+homepage: "https://www.performcb.com/"
+documentation: "https://www.performcb.com/"
+versions:
+  # Latest version
+  - sha: ''
+    changeNotes: Initial Version
+  # Older versions
