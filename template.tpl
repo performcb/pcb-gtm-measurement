@@ -74,13 +74,6 @@ ___TEMPLATE_PARAMETERS___
         "defaultValue": "clickid",
         "help": "If using redirect tracking, PerformCB will send clickid in the \u0026clickid\u003d parameter by default. For redirectless, this part will be ignored. \nDirect linking will be used if ClickID is not found in URL.",
         "alwaysInSummary": true
-      },
-      {
-        "type": "TEXT",
-        "name": "domain",
-        "displayName": "Cookie domain",
-        "simpleValueType": true,
-        "help": "If left empty, landing page domain will be used"
       }
     ],
     "enablingConditions": [
@@ -102,7 +95,7 @@ ___TEMPLATE_PARAMETERS___
         "name": "clickid",
         "displayName": "Click ID",
         "simpleValueType": true,
-        "help": "If empty, use click id from cookie"
+        "help": "(optional) The Clickid should be passed here. If you are using \"Click Tracking\", then you can leave this empty and it will automatically read the data from the cookie."
       }
     ],
     "enablingConditions": [
@@ -281,34 +274,15 @@ ___TEMPLATE_PARAMETERS___
         "type": "TEXT",
         "name": "saleamount",
         "displayName": "Sale Amount",
-        "simpleValueType": true
+        "simpleValueType": true,
+        "help": "(optional) This is used for reporting only"
       },
       {
         "type": "TEXT",
         "name": "payout",
-        "displayName": "Revshare Payout",
-        "simpleValueType": true
-      },
-      {
-        "type": "SIMPLE_TABLE",
-        "name": "params",
-        "displayName": "Additional Parameters",
-        "simpleTableColumns": [
-          {
-            "defaultValue": "",
-            "displayName": "Key",
-            "name": "key",
-            "type": "TEXT"
-          },
-          {
-            "defaultValue": "",
-            "displayName": "Value",
-            "name": "value",
-            "type": "TEXT"
-          }
-        ],
-        "help": "(Optional) eg. \u0026cbtid\u003dTRANSACTION_ID",
-        "newRowButtonText": "New parameter"
+        "displayName": "Payout (for revshare offers only)",
+        "simpleValueType": true,
+        "help": "This is required only if the offer type is revshare"
       }
     ],
     "enablingConditions": [
@@ -335,37 +309,36 @@ const injectIframe = require('injectHiddenIframe');
 const getCookie = require('getCookieValues');
 
 const leapClickIDLabel = 'leap_click_id';
+const dltScriptUrl = 'https://global.easysecurecdn.com/pcb-pixel-1.0.min.js';
 
-const dltScriptUrl = 'https://cdn.staging.cbleap.bay42.io/pcb-pixel-1.0.js';
-//const dltScriptUrl = 'https://global.easysecurecdn.com/pcb-pixel-1.0.min.js';
-
-let convUrl = 'https://mas.cbleap.bay42.io/l/con';
-//let convUrl = 'https://cvrdomain.com/l/con?cbiframe=1'; 
+let convUrl = 'https://cvrdomain.com/l/con';
 
 const cookieOptions = {
-  'domain': data.domain || 'auto',
+  'domain': 'auto',
   'path': '/',
-  'max-age': 60*60*24, 
+  'max-age': 60*60*24*30,
   'secure': true,
   'samesite': 'None'
 };
-//log(data);
+
+log('data: ', data);
+
 if(data.type == 'save_clickid') {
-  
+
   clickIdPersist();
-  
+
 } else if(data.type == 'main_conversion') {
-  
+
   makeMainConversion();
-  
+
 } else if(data.type == 'event_conversion') {
-  
+
   makeEventConversion();
-  
+
 } else {
-  
+
   onFailure();
-  
+
 }
 
 function onSuccess() {
@@ -379,9 +352,10 @@ function onFailure() {
 function clickIdPersist() {
   if(data.clickid_source) {
     let clickid_from_source = getQueryParameters(data.clickid_source);
-  
+
     if (clickid_from_source) {
       setCookie(leapClickIDLabel, clickid_from_source, cookieOptions);
+      log('click_id: ', clickid_from_source);
       onSuccess();
     } else {
       injectScript(dltScriptUrl, onDltScriptSuccess, onFailure);
@@ -399,31 +373,32 @@ function onDltScriptSuccess() {
 function loadDltClick(clickid_dlt) {
   if(clickid_dlt) {
     setCookie(leapClickIDLabel, clickid_dlt, cookieOptions);
+    log('click_id: ', clickid_dlt);
   } else {
-    //log('dlt click failed');
+    log('dlt click failed');
   }
 }
 
 function makeMainConversion()
 {
   let clickid = getClickIdForConv();
-  
+
   if (data.offer_id || data.ogid) {
     let url = convUrl + '?cbiframe=1';
-    
+
     if(clickid) {
       url += '&clickid=' +  encodeUriComponent(clickid);
     }
-    
+
     if(data.pixel_group) {
       url += '&ogid=' + encodeUriComponent(data.ogid);
     } else {
       url += '&oid=' + encodeUriComponent(data.offer_id);
     }
-    
+
     url = appendToConvUrl(url);
-    
-    //log(url);
+
+    log('main iframe url: ', url);
     injectIframe(url, onSuccess);
   } else {
     log("'offer/pixel group id' are required");
@@ -434,27 +409,27 @@ function makeMainConversion()
 function makeEventConversion()
 {
   let clickid = getClickIdForConv();
-  
+
   if (data.event_id || data.event_pixel_group_id) {
     let url = convUrl + '?cbiframe=1';
-    
+
     if(clickid) {
       url += '&clickid=' +  encodeUriComponent(clickid);
     }
-    
+
     if( ! data.main_pixel_group_use) {
       url += '&oid=' + encodeUriComponent(data.main_offer_id);
     }
-    
+
     if(data.event_pixel_group) {
       url += '&cbguid=' + encodeUriComponent(data.event_pixel_group_id);
     } else {
       url += '&cbuid=' + encodeUriComponent(data.event_id);
     }
-    
+
     url = appendToConvUrl(url);
-     
-    //log(url);
+
+    log('event iframe url: ', url);
     injectIframe(url, onSuccess);
   } else {
     log("'event id/pixel group id' are required");
@@ -465,17 +440,17 @@ function makeEventConversion()
 function getClickIdForConv()
 {
   let clickid = null;
-  
+
   if( ! data.clickid) {
     let leap_cookie = getCookie(leapClickIDLabel);
-  
+
     if(leap_cookie[0]) {
       clickid = leap_cookie[0];
     }
   } else {
     clickid = data.clickid;
   }
-  
+
   return clickid;
 }
 
@@ -484,21 +459,15 @@ function appendToConvUrl(url)
   if(data.transaction_id) {
     url += '&cbtid=' + encodeUriComponent(data.transaction_id);
   }
-    
+
   if(data.saleamount) {
     url += '&saleamount=' + encodeUriComponent(data.saleamount);
   }
-    
+
   if(data.payout) {
     url += '&payout=' + encodeUriComponent(data.payout);
   }
-    
-  if(data.params && data.params.length) {
-    data.params.forEach((item) => {
-      url += '&' + encodeUriComponent(item.key) + '=' + encodeUriComponent(item.value);
-    });
-  }
-  
+
   return url;
 }
 
@@ -517,7 +486,7 @@ ___WEB_PERMISSIONS___
           "key": "environments",
           "value": {
             "type": 1,
-            "string": "all"
+            "string": "debug"
           }
         }
       ]
