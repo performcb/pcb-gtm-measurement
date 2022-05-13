@@ -2,6 +2,8 @@ homepage: "https://www.performcb.com/"
 documentation: "https://www.performcb.com/"
 versions:
   # Latest version
+  - sha: b656ec35e2b64beab0d9b60eda0778ce74a4e0e6
+    changeNotes: Beta Release
+  # Older versions
   - sha: 055a8c08554852565c87156b7763fe12474bbabe
     changeNotes: Initial Version
-  # Older versions
