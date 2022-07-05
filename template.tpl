@@ -572,10 +572,6 @@ ___WEB_PERMISSIONS___
               {
                 "type": 1,
                 "string": "https://global.easysecurecdn.com/"
-              },
-              {
-                "type": 1,
-                "string": "https://cdn.staging.cbleap.bay42.io/"
               }
             ]
           }
@@ -729,10 +725,6 @@ ___WEB_PERMISSIONS___
           "value": {
             "type": 2,
             "listItem": [
-              {
-                "type": 1,
-                "string": "https://mas.cbleap.bay42.io/"
-              },
               {
                 "type": 1,
                 "string": "https://cvrdomain.com/"
