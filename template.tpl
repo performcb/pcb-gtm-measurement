@@ -124,9 +124,6 @@ ___TEMPLATE_PARAMETERS___
         "simpleValueType": true,
         "valueValidators": [
           {
-            "type": "NON_EMPTY"
-          },
-          {
             "type": "NUMBER"
           }
         ],
@@ -144,9 +141,6 @@ ___TEMPLATE_PARAMETERS___
         "displayName": "Pixel group ID",
         "simpleValueType": true,
         "valueValidators": [
-          {
-            "type": "NON_EMPTY"
-          },
           {
             "type": "NUMBER"
           }
@@ -311,12 +305,12 @@ const getCookie = require('getCookieValues');
 const leapClickIDLabel = 'leap_click_id';
 const dltScriptUrl = 'https://global.easysecurecdn.com/pcb-pixel-1.0.min.js';
 
-let convUrl = 'https://cvrdomain.com/l/con';
+let convUrl = 'https://cvrdomain.com/l/con'; 
 
 const cookieOptions = {
   'domain': 'auto',
   'path': '/',
-  'max-age': 60*60*24*30,
+  'max-age': 60*60*24*30, 
   'secure': true,
   'samesite': 'None'
 };
@@ -324,21 +318,21 @@ const cookieOptions = {
 log('data: ', data);
 
 if(data.type == 'save_clickid') {
-
+  
   clickIdPersist();
-
+  
 } else if(data.type == 'main_conversion') {
-
+  
   makeMainConversion();
-
+  
 } else if(data.type == 'event_conversion') {
-
+  
   makeEventConversion();
-
+  
 } else {
-
+  
   onFailure();
-
+  
 }
 
 function onSuccess() {
@@ -352,7 +346,7 @@ function onFailure() {
 function clickIdPersist() {
   if(data.clickid_source) {
     let clickid_from_source = getQueryParameters(data.clickid_source);
-
+  
     if (clickid_from_source) {
       setCookie(leapClickIDLabel, clickid_from_source, cookieOptions);
       log('click_id: ', clickid_from_source);
@@ -382,53 +376,51 @@ function loadDltClick(clickid_dlt) {
 function makeMainConversion()
 {
   let clickid = getClickIdForConv();
+  let url = convUrl + '?cbiframe=1';
 
-  if (data.offer_id || data.ogid) {
-    let url = convUrl + '?cbiframe=1';
+  if(clickid) {
+    url += '&clickid=' +  encodeUriComponent(clickid);
+  }
 
-    if(clickid) {
-      url += '&clickid=' +  encodeUriComponent(clickid);
-    }
-
-    if(data.pixel_group) {
+  if(data.pixel_group) {
+    if(data.ogid) {
       url += '&ogid=' + encodeUriComponent(data.ogid);
-    } else {
+    }
+  } else {
+    if(data.offer_id) {
       url += '&oid=' + encodeUriComponent(data.offer_id);
     }
-
-    url = appendToConvUrl(url);
-
-    log('main iframe url: ', url);
-    injectIframe(url, onSuccess);
-  } else {
-    log("'offer/pixel group id' are required");
-    onFailure();
   }
+
+  url = appendToConvUrl(url);
+
+  log('main iframe url: ', url);
+  injectIframe(url, onSuccess);
 }
 
 function makeEventConversion()
 {
   let clickid = getClickIdForConv();
-
+  
   if (data.event_id || data.event_pixel_group_id) {
     let url = convUrl + '?cbiframe=1';
-
+    
     if(clickid) {
       url += '&clickid=' +  encodeUriComponent(clickid);
     }
-
+    
     if( ! data.main_pixel_group_use) {
       url += '&oid=' + encodeUriComponent(data.main_offer_id);
     }
-
+    
     if(data.event_pixel_group) {
       url += '&cbguid=' + encodeUriComponent(data.event_pixel_group_id);
     } else {
       url += '&cbuid=' + encodeUriComponent(data.event_id);
     }
-
+    
     url = appendToConvUrl(url);
-
+     
     log('event iframe url: ', url);
     injectIframe(url, onSuccess);
   } else {
@@ -440,17 +432,17 @@ function makeEventConversion()
 function getClickIdForConv()
 {
   let clickid = null;
-
+  
   if( ! data.clickid) {
     let leap_cookie = getCookie(leapClickIDLabel);
-
+  
     if(leap_cookie[0]) {
       clickid = leap_cookie[0];
     }
   } else {
     clickid = data.clickid;
   }
-
+  
   return clickid;
 }
 
@@ -459,15 +451,15 @@ function appendToConvUrl(url)
   if(data.transaction_id) {
     url += '&cbtid=' + encodeUriComponent(data.transaction_id);
   }
-
+    
   if(data.saleamount) {
     url += '&saleamount=' + encodeUriComponent(data.saleamount);
   }
-
+    
   if(data.payout) {
     url += '&payout=' + encodeUriComponent(data.payout);
   }
-
+  
   return url;
 }
 
