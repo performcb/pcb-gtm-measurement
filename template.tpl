@@ -376,7 +376,7 @@ function loadDltClick(clickid_dlt) {
 function makeMainConversion()
 {
   let clickid = getClickIdForConv();
-  let url = convUrl + '?cbiframe=1';
+  let url = convUrl + '?gtl=1&cbiframe=1';
 
   if(clickid) {
     url += '&clickid=' +  encodeUriComponent(clickid);
@@ -403,7 +403,7 @@ function makeEventConversion()
   let clickid = getClickIdForConv();
   
   if (data.event_id || data.event_pixel_group_id) {
-    let url = convUrl + '?cbiframe=1';
+    let url = convUrl + '?gtl=1&cbiframe=1';
     
     if(clickid) {
       url += '&clickid=' +  encodeUriComponent(clickid);
