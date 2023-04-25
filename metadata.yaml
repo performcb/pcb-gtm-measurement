@@ -2,9 +2,11 @@ homepage: "https://www.performcb.com/"
 documentation: "https://www.performcb.com/"
 versions:
   # Latest version
+  - sha: e326c08945c4360df8d5be8c77a438948793cdff
+    changeNotes: Universal Outcome Pixel
+  # Older version
   - sha: 611e3528eb4bd66c5339676511dbc1462ba11fbb
     changeNotes: Url update
-  # Older versions
   - sha: 3ab1a8590f6f5426f09955d7eaa3f520f0b1119a
     changeNotes: Optional id fields
   - sha: 67524bf0354fee47a71336b6ec4d6a4ce8cd48a6
