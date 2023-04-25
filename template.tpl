@@ -39,6 +39,10 @@ ___TEMPLATE_PARAMETERS___
     "displayName": "Tag Type",
     "radioItems": [
       {
+        "value": "domain_tracking",
+        "displayValue": "Universal Outcome Pixel"
+      },
+      {
         "value": "save_clickid",
         "displayValue": "Click Tracking",
         "help": "Should be triggered on every landing page or all pages on the site"
@@ -101,8 +105,13 @@ ___TEMPLATE_PARAMETERS___
     "enablingConditions": [
       {
         "paramName": "type",
-        "paramValue": "save_clickid",
-        "type": "NOT_EQUALS"
+        "paramValue": "main_conversion",
+        "type": "EQUALS"
+      },
+      {
+        "paramName": "type",
+        "paramValue": "event_conversion",
+        "type": "EQUALS"
       }
     ]
   },
@@ -302,8 +311,8 @@ const encodeUriComponent = require('encodeUriComponent');
 const injectIframe = require('injectHiddenIframe');
 const getCookie = require('getCookieValues');
 
-const leapClickIDLabel = 'leap_click_id';
-const dltScriptUrl = 'https://global.easysecurecdn.com/pcb-pixel-1.0.min.js';
+const leapClickIDLabel = 'pcb_click_id';
+const dltScriptUrl = 'https://global.easysecurecdn.com/pcb-js/pcb-pixel.min.js';
 
 let convUrl = 'https://cvrdomain.com/l/con'; 
 
@@ -328,6 +337,10 @@ if(data.type == 'save_clickid') {
 } else if(data.type == 'event_conversion') {
   
   makeEventConversion();
+  
+} else if(data.type == 'domain_tracking') {
+  
+  pcbPixelTrack();
   
 } else {
   
@@ -463,6 +476,34 @@ function appendToConvUrl(url)
   return url;
 }
 
+function pcbPixelTrack()
+{
+  injectScript(dltScriptUrl, onPcbPixelScriptSuccess, onFailure);
+}
+
+function onPcbPixelScriptSuccess() {
+  let pcbData = {
+    conv_data: {}
+  };
+  
+  if(data.transaction_id) {
+    pcbData.conv_data.cbtid = data.transaction_id;
+  }
+    
+  if(data.saleamount) {
+    pcbData.conv_data.saleamount = data.saleamount;
+  }
+    
+  if(data.payout) {
+    pcbData.conv_data.payout = data.payout;
+  }
+  
+  //log('pcb_data: ', pcbData);
+  
+  callInWindow("PCBpixel.track", pcbData);
+  onSuccess();
+}
+
 
 ___WEB_PERMISSIONS___
 
@@ -524,6 +565,45 @@ ___WEB_PERMISSIONS___
                   {
                     "type": 1,
                     "string": "PCBpixel.click"
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  },
+                  {
+                    "type": 8,
+                    "boolean": true
+                  }
+                ]
+              },
+              {
+                "type": 3,
+                "mapKey": [
+                  {
+                    "type": 1,
+                    "string": "key"
+                  },
+                  {
+                    "type": 1,
+                    "string": "read"
+                  },
+                  {
+                    "type": 1,
+                    "string": "write"
+                  },
+                  {
+                    "type": 1,
+                    "string": "execute"
+                  }
+                ],
+                "mapValue": [
+                  {
+                    "type": 1,
+                    "string": "PCBpixel.track"
                   },
                   {
                     "type": 8,
@@ -614,7 +694,7 @@ ___WEB_PERMISSIONS___
                 "mapValue": [
                   {
                     "type": 1,
-                    "string": "leap_click_id"
+                    "string": "pcb_click_id"
                   },
                   {
                     "type": 1,
@@ -693,7 +773,7 @@ ___WEB_PERMISSIONS___
             "listItem": [
               {
                 "type": 1,
-                "string": "leap_click_id"
+                "string": "pcb_click_id"
               }
             ]
           }
@@ -741,6 +821,5 @@ scenarios: []
 
 ___NOTES___
 
-Created on 5/10/2022, 5:10:48 PM
-
+Updated on 04/25/2023
 
